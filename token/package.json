@@ -1,0 +1,28 @@
+{
+  "name": "nep21-token",
+  "version": "1.0.0",
+  "description": "NEP21 example",
+  "scripts": {
+    "build": "cargo build --target wasm32-unknown-unknown --release",
+    "postbuild": "cp ../target/wasm32-unknown-unknown/release/nep21_token.wasm ./res/",
+    "local-deploy": "near dev-deploy --wasmFile res/near_groth16_verifier.wasm --masterAccount node0",
+    "local-update": "npm run build && npm run local-deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeropoolnetwork/nep21-playground.git"
+  },
+  "keywords": [
+    "near-protocol",
+    "blockchain",
+    "rust",
+    "smart-contract"
+  ],
+  "author": "Igor Gulamov",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zeropoolnetwork/nep21-playground/issues"
+  },
+  "homepage": "https://github.com/zeropoolnetwork/nep21-playground#readme",
+  "devDependencies": {}
+}
