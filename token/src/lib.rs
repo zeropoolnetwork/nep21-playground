@@ -68,6 +68,7 @@ impl Token {
     }
 
     pub fn inc_allowance(&mut self, escrow_account_id: AccountId, amount: Balance) {
+        let initial_storage = env::storage_usage();
         assert!(
             env::is_valid_account_id(escrow_account_id.as_bytes()),
             "Escrow account ID is invalid"
@@ -80,9 +81,11 @@ impl Token {
         let current_allowance = account.get_allowance(&escrow_account_id);
         account.set_allowance(&escrow_account_id, current_allowance.saturating_add(amount));
         self.set_account(&owner_id, &account);
+        self.refund_storage(initial_storage);
     }
 
     pub fn dec_allowance(&mut self, escrow_account_id: AccountId, amount: Balance) {
+        let initial_storage = env::storage_usage();
         assert!(
             env::is_valid_account_id(escrow_account_id.as_bytes()),
             "Escrow account ID is invalid"
@@ -95,9 +98,11 @@ impl Token {
         let current_allowance = account.get_allowance(&escrow_account_id);
         account.set_allowance(&escrow_account_id, current_allowance.saturating_sub(amount));
         self.set_account(&owner_id, &account);
+        self.refund_storage(initial_storage);
     }
 
     pub fn transfer_from(&mut self, owner_id: AccountId, new_owner_id: AccountId, amount: Balance) {
+        let initial_storage = env::storage_usage();
         assert!(
             env::is_valid_account_id(new_owner_id.as_bytes()),
             "New owner's account ID is invalid"
@@ -135,6 +140,7 @@ impl Token {
         let mut new_account = self.get_account(&new_owner_id);
         new_account.balance += amount;
         self.set_account(&new_owner_id, &new_account);
+        self.refund_storage(initial_storage);
     }
 
     pub fn transfer(&mut self, new_owner_id: AccountId, amount: Balance) {
@@ -195,6 +201,29 @@ impl Token {
             self.accounts.insert(&account_hash, &account);
         } else {
             self.accounts.remove(&account_hash);
+        }
+    }
+
+    fn refund_storage(&self, initial_storage: StorageUsage) {
+        let current_storage = env::storage_usage();
+        let attached_deposit = env::attached_deposit();
+        let refund_amount = if current_storage > initial_storage {
+            let required_deposit =
+                Balance::from(current_storage - initial_storage) * STORAGE_PRICE_PER_BYTE;
+            assert!(
+                required_deposit <= attached_deposit,
+                "The required attached deposit is {}, but the given attached deposit is is {}",
+                required_deposit,
+                attached_deposit,
+            );
+            attached_deposit - required_deposit
+        } else {
+            attached_deposit
+                + Balance::from(initial_storage - current_storage) * STORAGE_PRICE_PER_BYTE
+        };
+        if refund_amount > 0 {
+            env::log(format!("Refunding {} tokens for storage", refund_amount).as_bytes());
+            Promise::new(env::predecessor_account_id()).transfer(refund_amount);
         }
     }
 }

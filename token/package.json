@@ -4,9 +4,7 @@
   "description": "NEP21 example",
   "scripts": {
     "build": "cargo build --target wasm32-unknown-unknown --release",
-    "postbuild": "cp ../target/wasm32-unknown-unknown/release/nep21_token.wasm ./res/",
-    "local-deploy": "near dev-deploy --wasmFile res/near_groth16_verifier.wasm --masterAccount node0",
-    "local-update": "npm run build && npm run local-deploy"
+    "postbuild": "cp ../target/wasm32-unknown-unknown/release/nep21_token.wasm ./res/"
   },
   "repository": {
     "type": "git",
@@ -24,5 +22,9 @@
     "url": "https://github.com/zeropoolnetwork/nep21-playground/issues"
   },
   "homepage": "https://github.com/zeropoolnetwork/nep21-playground#readme",
+  "dependencies": {
+    "near-api-js": "^0.30.0",
+    "dotenv": "^8.2.0"
+  },
   "devDependencies": {}
 }
